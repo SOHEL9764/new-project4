@@ -22,8 +22,8 @@ namespace SampleWebApp.Model
         {
             try
             {
-                string keyVaultUrl = _configuration["https://eastuskeyvault01.vault.azure.net/"];
-                string secretName = _configuration["azuresql"];
+                string keyVaultUrl = _configuration["KeyVaultUrl"];
+                string secretName = _configuration["ConnectionStringSecretName"];
 
                 var client = new SecretClient(new Uri(keyVaultUrl), new DefaultAzureCredential());
                 KeyVaultSecret secret = await client.GetSecretAsync(secretName);
@@ -46,7 +46,7 @@ namespace SampleWebApp.Model
             {
                 SqlDataAdapter da = new SqlDataAdapter("SELECT * FROM TblUsers", con);
                 DataTable dt = new DataTable();
-                da.Fill(dt);
+                await Task.Run(() => da.Fill(dt));
                 if (dt.Rows.Count > 0)
                 {
                     for (int i = 0; i < dt.Rows.Count; i++)
@@ -90,12 +90,12 @@ namespace SampleWebApp.Model
                 SqlDataAdapter da = new SqlDataAdapter("SELECT * FROM TblUsers WHERE ID = @ID", con);
                 da.SelectCommand.Parameters.AddWithValue("@ID", id);
                 DataTable dt = new DataTable();
-                da.Fill(dt);
+                await Task.Run(() => da.Fill(dt));
                 if (dt.Rows.Count > 0)
                 {
                     user.Id = Convert.ToString(dt.Rows[0]["Id"]);
                     user.FirstName = Convert.ToString(dt.Rows[0]["FirstName"]);
-                    user.LastName = Convert.ToString(dt.Rows[0]["LastName"]);
+                    user.LastName = Convert.ToString(dt.rows[0]["LastName"]);
                 }
             }
             return user;
