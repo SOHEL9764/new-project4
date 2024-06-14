@@ -1,49 +1,36 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Configuration;
 using SampleWebApp.Model;
+using System.Threading.Tasks;
 
 namespace SampleWebApp.Pages.Client
 {
     public class CreateModel : PageModel
     {
-        public User user = new User();
-        public string errorMessage = String.Empty;
-        public string successMessage = String.Empty;
+        private readonly DAL _dal;
 
-        private readonly IConfiguration _configuration;
-        public CreateModel(IConfiguration _configuration)
+        public CreateModel(IConfiguration configuration)
         {
-            this._configuration = _configuration;
+            _dal = new DAL(configuration);
         }
+
+        [BindProperty]
+        public User User { get; set; }
+
         public void OnGet()
         {
         }
 
-        public void OnPost()
+        public async Task<IActionResult> OnPostAsync()
         {
-            user.FirstName = Request.Form["FirstName"];
-            user.LastName = Request.Form["LastName"];
-
-            if(user.FirstName.Length == 0 || user.LastName.Length == 0)
+            if (!ModelState.IsValid)
             {
-                errorMessage = "All fields are required.";
-                return;
+                return Page();
             }
 
-            try
-            {
-                DAL dal = new DAL();
-                int i = dal.AddUser(user, _configuration);
-            }
-            catch(Exception ex)
-            {
-                errorMessage = ex.Message;
-                return;
-            }
-
-            user.FirstName = ""; user.LastName = "";
-            successMessage = "New User added.";
-            Response.Redirect("/Client/Index");
+            await _dal.AddUserAsync(User);
+            return RedirectToPage("./Index");
         }
     }
 }
