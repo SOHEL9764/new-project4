@@ -1287,11 +1287,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\sohai\\ASP.NET WEB\\SampleWebApp.csproj",
+      "projectUniqueName": "C:\\Users\\sohai\\EastUsWebApp\\SampleWebApp.csproj",
       "projectName": "SampleWebApp",
-      "projectPath": "C:\\Users\\sohai\\ASP.NET WEB\\SampleWebApp.csproj",
+      "projectPath": "C:\\Users\\sohai\\EastUsWebApp\\SampleWebApp.csproj",
       "packagesPath": "C:\\Users\\sohai\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\sohai\\ASP.NET WEB\\obj\\",
+      "outputPath": "C:\\Users\\sohai\\EastUsWebApp\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\sohai\\AppData\\Roaming\\NuGet\\NuGet.Config",
