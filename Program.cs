@@ -32,14 +32,14 @@ namespace KeyVault
                 return;
             }
 
-            // Build the client credentials
-            var clientSecretCredential = new ClientSecretCredential(tenantId, clientId, clientSecret);
-
-            // Key Vault URL
-            string keyVaultUrl = "https://eastuskeyvault01.vault.azure.net/";
-
             try
             {
+                // Build the client credentials
+                var clientSecretCredential = new ClientSecretCredential(tenantId, clientId, clientSecret);
+
+                // Key Vault URL
+                string keyVaultUrl = "https://eastuskeyvault01.vault.azure.net/";
+
                 // Create a new SecretClient to access the Key Vault
                 var client = new SecretClient(new Uri(keyVaultUrl), clientSecretCredential);
 
@@ -51,8 +51,6 @@ namespace KeyVault
             {
                 Console.WriteLine($"An error occurred while accessing the Key Vault: {ex.Message}");
             }
-
-            Console.ReadKey();
         }
     }
 }
