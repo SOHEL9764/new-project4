@@ -1,15 +1,48 @@
-﻿using Microsoft.Extensions.Configuration;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
+using Microsoft.Extensions.Configuration;
+using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Threading.Tasks;
 
 namespace SampleWebApp.Model
 {
     public class DAL
     {
-        public List<User> GetUsers(IConfiguration _configuration)
+        private readonly IConfiguration _configuration;
+
+        public DAL(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
+        private async Task<string> GetConnectionStringAsync()
+        {
+            try
+            {
+                string keyVaultUrl = _configuration["https://eastuskeyvault01.vault.azure.net/"];
+                string secretName = _configuration["azuresql"];
+
+                var client = new SecretClient(new Uri(keyVaultUrl), new DefaultAzureCredential());
+                KeyVaultSecret secret = await client.GetSecretAsync(secretName);
+
+                return secret.Value;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error retrieving connection string: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<List<User>> GetUsersAsync()
         {
             List<User> users = new List<User>();
-            using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("DAB").ToString()))
+            string connectionString = await GetConnectionStringAsync();
+
+            using (SqlConnection con = new SqlConnection(connectionString))
             {
                 SqlDataAdapter da = new SqlDataAdapter("SELECT * FROM TblUsers", con);
                 DataTable dt = new DataTable();
@@ -29,25 +62,33 @@ namespace SampleWebApp.Model
             return users;
         }
 
-        public int AddUser(User user, IConfiguration _configuration)
+        public async Task<int> AddUserAsync(User user)
         {
             int i = 0;
-            using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("DAB").ToString()))
+            string connectionString = await GetConnectionStringAsync();
+
+            using (SqlConnection con = new SqlConnection(connectionString))
             {
-                SqlCommand cmd = new SqlCommand("INSERT INTO TblUsers VALUES('" + user.FirstName + "', '" + user.LastName + "')", con);
+                SqlCommand cmd = new SqlCommand("INSERT INTO TblUsers (FirstName, LastName) VALUES(@FirstName, @LastName)", con);
+                cmd.Parameters.AddWithValue("@FirstName", user.FirstName);
+                cmd.Parameters.AddWithValue("@LastName", user.LastName);
+
                 con.Open();
-                i = cmd.ExecuteNonQuery();
+                i = await cmd.ExecuteNonQueryAsync();
                 con.Close();
             }
             return i;
         }
 
-        public User GetUser(string id, IConfiguration _configuration)
+        public async Task<User> GetUserAsync(string id)
         {
             User user = new User();
-            using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("DAB").ToString()))
+            string connectionString = await GetConnectionStringAsync();
+
+            using (SqlConnection con = new SqlConnection(connectionString))
             {
-                SqlDataAdapter da = new SqlDataAdapter("SELECT * FROM TblUsers WHERE ID = '" + id + "'", con);
+                SqlDataAdapter da = new SqlDataAdapter("SELECT * FROM TblUsers WHERE ID = @ID", con);
+                da.SelectCommand.Parameters.AddWithValue("@ID", id);
                 DataTable dt = new DataTable();
                 da.Fill(dt);
                 if (dt.Rows.Count > 0)
@@ -60,31 +101,40 @@ namespace SampleWebApp.Model
             return user;
         }
 
-        public int UpdateUser(User user, IConfiguration _configuration)
+        public async Task<int> UpdateUserAsync(User user)
         {
             int i = 0;
-            using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("DAB").ToString()))
+            string connectionString = await GetConnectionStringAsync();
+
+            using (SqlConnection con = new SqlConnection(connectionString))
             {
-                SqlCommand cmd = new SqlCommand("Update TblUsers SET FirstName = '" + user.FirstName + "', LastName = '" + user.LastName + "' WHERE ID = '" + user.Id + "'", con);
+                SqlCommand cmd = new SqlCommand("UPDATE TblUsers SET FirstName = @FirstName, LastName = @LastName WHERE ID = @ID", con);
+                cmd.Parameters.AddWithValue("@FirstName", user.FirstName);
+                cmd.Parameters.AddWithValue("@LastName", user.LastName);
+                cmd.Parameters.AddWithValue("@ID", user.Id);
+
                 con.Open();
-                i = cmd.ExecuteNonQuery();
+                i = await cmd.ExecuteNonQueryAsync();
                 con.Close();
             }
             return i;
         }
 
-        public int DeleteUser(string id, IConfiguration _configuration)
-        {   
+        public async Task<int> DeleteUserAsync(string id)
+        {
             int i = 0;
-            using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("DAB").ToString()))
+            string connectionString = await GetConnectionStringAsync();
+
+            using (SqlConnection con = new SqlConnection(connectionString))
             {
-                SqlCommand cmd = new SqlCommand("DELETE FROM TblUsers WHERE ID = '" + id + "'", con);
+                SqlCommand cmd = new SqlCommand("DELETE FROM TblUsers WHERE ID = @ID", con);
+                cmd.Parameters.AddWithValue("@ID", id);
+
                 con.Open();
-                i = cmd.ExecuteNonQuery();
+                i = await cmd.ExecuteNonQueryAsync();
                 con.Close();
             }
             return i;
         }
-
     }
 }
