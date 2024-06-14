@@ -1,21 +1,25 @@
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Configuration;
 using SampleWebApp.Model;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace SampleWebApp.Pages.Client
 {
     public class IndexModel : PageModel
     {
-        private readonly IConfiguration _configuration;
-        public IndexModel(IConfiguration _configuration)
+        private readonly DAL _dal;
+
+        public IndexModel(IConfiguration configuration)
         {
-            this._configuration = _configuration;
+            _dal = new DAL(configuration);
         }
-        public List<User> listUsers = new List<User>(); 
-        public void OnGet()
+
+        public List<User> Users { get; set; }
+
+        public async Task OnGetAsync()
         {
-            DAL dal = new DAL();
-            listUsers = dal.GetUsers(_configuration);
+            Users = await _dal.GetUsersAsync();
         }
     }
 }
